@@ -65,7 +65,7 @@ class Flag(IFlag[FlagConfig]):
 		Args:
 			function_name (Callable[[str], str], optional): The name of the GLSL decoder function
 		"""
-		def create(values: _BlockCollection, materials: DHMaterial, **kwargs: Unpack[FlagConfig]):
+		def create(values: _BlockCollection, materials: DHMaterial = DHMaterial.DH_NONE, **kwargs: Unpack[FlagConfig]):
 			return cls(values, materials, **(defaults | kwargs))
 		return create
 	
@@ -123,7 +123,7 @@ class FlagSequence[T, C: SequenceConfig](IFlag[C]):
 				for k,v in self.values.items()
             },
 			default_value=self.value_name(self.config['default_value']),
-			fn_decl=f'{self.return_type} {fn_name}',
+			fn_decl=f'{self.return_type(flag)} {fn_name}',
 			fn_prefix=self.fn_prefix(flag),
 			fn_suffix=self.fn_suffix(flag)
 		)
@@ -144,7 +144,7 @@ class IntFlag(FlagSequence[int, SequenceConfig[int]]):
 		super().__init__(values, kwargs)
 
 	config: SequenceConfig[int] = {
-		'function_name': lambda name: camelcase(name),
+		'function_name': lambda name: f"get{pascalcase(name)}",
 		'default_value': 0
 	}
 	
@@ -233,6 +233,23 @@ class EnumFlag(FlagSequence[str, EnumFlagConfig]):
 		if name_fn := self.config.get('enum_name'):
 			return name_fn(flag)
 		return 'int'
+
+	def fn_prefix(self, flag: str):
+		lines = []
+
+		# struct type, if named
+		value_name_fn = self.config['enum_value_name']
+		value_decl = None
+		if name_fn := self.config.get('enum_name'):
+			type_name = name_fn(flag)
+			lines.append(f"struct {type_name} {{ int value; }};\n")
+			value_decl = lambda value, n: f"const {type_name} {value_name_fn(flag, value)} = {type_name}({n});\n"
+			pass
+		
+		for index, key in enumerate(self.values):
+			lines.append(value_decl(key, index))
+
+		return "".join(lines)
 	
 	def display_value(self, val: str) -> str: return val
 

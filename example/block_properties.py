@@ -12,10 +12,9 @@ def main():
 	tags = load_tags()
 	tag_time = perf_counter()
 
-	Bool = Flag.Config(function_name=lambda flag: f"Is{pascalcase(flag)}")
-	Sequence = FlagSequence.Config(function_name=lambda flag: f"Get{pascalcase(flag)}")
-	Enum = EnumFlag.Config(function_name=lambda flag: f"{pascalcase(flag)}Type") | Sequence
-	Int = IntFlag.Config() | Sequence
+	Bool = Flag.Conf(function_name=lambda flag: f"Is{pascalcase(flag)}")
+	Enum = EnumFlag.Conf(function_name=lambda flag: f"{pascalcase(flag)}Type")
+	Int = IntFlag.Conf(function_name=lambda flag: pascalcase(flag))
 	
 	mapping = BlockMapping.solve({
 		'sway':Enum({
