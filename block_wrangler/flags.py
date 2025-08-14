@@ -181,7 +181,7 @@ class FloatFlag(FlagSequence[float, FloatFlagConfig]):
 		super().__init__(values, kwargs)
 
 	config: FloatFlagConfig = {
-		'function_name': lambda name: camelcase(name),
+		'function_name': lambda name: f"get{pascalcase(name)}",
 		'format': lambda val: f'{val:.2f}',
 		'default_value': 0.0
 	}
@@ -223,10 +223,10 @@ class EnumFlag(FlagSequence[str, EnumFlagConfig]):
 		super().__init__(values, config)
 	
 	config: EnumFlagConfig = {
-		'function_name': lambda x: camelcase(x),
+		'function_name': lambda x: f"{camelcase(x)}Type",
 		'default_value': 'NONE',
 		'enum_name': lambda flag: pascalcase(flag),
-		'enum_value_name': lambda flag, value: f'{pascalcase(flag)}_{macrocase(value)}'
+		'enum_value_name': lambda flag, value: f'{macrocase(flag)}_{macrocase(value)}'
 	}
 
 	def return_type(self, flag: str):
